@@ -13,6 +13,9 @@ function LoginPage() {
     const [error, setError] = useState({ username: false, password: false });
 
     const navigate = useNavigate();
+    
+    console.log('test');
+    
 
 
     function handeLogin(){
