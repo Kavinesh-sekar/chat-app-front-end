@@ -3,16 +3,17 @@ import TextField from '@mui/material/TextField';
 import '../Styles/LoginPage.css';
 import Button from '@mui/material/Button';
 import { useNavigate } from 'react-router-dom';
+import {registerUser} from '../api/authAPI';
 
 function Signup() {
   const navigate = useNavigate();
 
-  const [username, setUsername] = useState('');
+  const [userName, setuserName] = useState('');
   const [password, setPassword] = useState('');
   const [email, setEmail] = useState('');
   const [confirmpassword, setConfirmPassword] = useState('');
   const [errors, setErrors] = useState({
-    username: '',
+    userName: '',
     email: '',
     password: '',
     confirmpassword: '',
@@ -24,11 +25,11 @@ function Signup() {
     return regex.test(email);
   }
 
-  function handleRegister() {
+  const  handleRegister= async ()=> {
     let validationErrors = {};
 
-    if (!username.trim()) {
-      validationErrors.username = 'Username is required';
+    if (!userName.trim()) {
+      validationErrors.userName = 'userName is required';
     }
 
     if (!email.trim() || !validateEmail(email)) {
@@ -50,13 +51,25 @@ function Signup() {
       return;
     }
 
-    console.log('Username:', username);
+    console.log('userName:', userName);
     console.log('Email:', email);
     console.log('Password:', password);
     console.log('Confirm Password:', confirmpassword);
 
+    try{
+      const sendData = await registerUser({userName,email,password})
+      console.log('se',sendData);
+      navigate('/');
+      
+    }
+    catch(error){
+      console.log(error.response?.data?.message || 'Register failed!');
+      
+    }
+
+
     // Proceed with the registration logic (e.g., API call)
-    navigate('/');
+   
   }
 
   return (
@@ -66,13 +79,13 @@ function Signup() {
         <div className="LoginBox">
           <TextField
             className="user"
-            label="Username"
+            label="userName"
             variant="outlined"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            placeholder="Username"
-            error={!!errors.username}
-            helperText={errors.username}
+            value={userName}
+            onChange={(e) => setuserName(e.target.value)}
+            placeholder="userName"
+            error={!!errors.userName}
+            helperText={errors.userName}
           />
           <TextField
             className="email"

@@ -4,13 +4,16 @@ import '../Styles/LoginPage.css';
 import Button from '@mui/material/Button';
 import { useNavigate } from 'react-router-dom';
 import Signup from './SignUp';
+import { loginUser } from '../api/authAPI';
+import {jwtDecode} from 'jwt-decode'
+
 
 
 function LoginPage() {
 
-    const [username, setUsername] = useState('');
+    const [email, SetEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [error, setError] = useState({ username: false, password: false });
+    const [error, setError] = useState({ email: false, password: false });
 
     const navigate = useNavigate();
     
@@ -18,13 +21,13 @@ function LoginPage() {
     
 
 
-    function handeLogin(){
-      setError({ username: false, password: false });
+    const  handeLogin= async()=>{
+      setError({ email: false, password: false });
 
       let hasError = false;
 
-      if (username.trim() === '') {
-        setError((prev) => ({ ...prev, username: true }));
+      if (email.trim() === '') {
+        setError((prev) => ({ ...prev, email: true }));
         hasError = true;
       }
   
@@ -38,8 +41,30 @@ function LoginPage() {
         return;
       }
   
-      console.log('Username:', username);
+      console.log('email:', email);
       console.log('Password:', password);
+
+      try{
+        const data =  await loginUser({email,password})
+        console.log('dataaaa',data);
+        localStorage.setItem('accessToken', data.accessToken);
+        localStorage.setItem('refreshToken', data.refreshToken);
+        const decodedToken = jwtDecode(data.accessToken);
+        localStorage.setItem('ids',decodedToken.id );
+
+
+    
+
+   
+        navigate('/dashboard');
+
+        
+
+        
+      }catch(error){
+        console.log(error.response?.data?.message || 'Login failed!');
+        
+      }
     }
   return (
    <>
@@ -48,10 +73,10 @@ function LoginPage() {
         <h1 className='head'>Login</h1>
         <div className='LoginBox'>
         <TextField className ='user' label="Email"variant="outlined"
-         value={username} onChange={(e) => setUsername(e.target.value)}
-          placeholder='Username'
-          error={error.username}
-          helperText={error.username ? 'Email is required' : ''} 
+         value={email} onChange={(e) => SetEmail(e.target.value)}
+          placeholder='email'
+          error={error.email}
+          helperText={error.email ? 'Email is required' : ''} 
           
           />
 
