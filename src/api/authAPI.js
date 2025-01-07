@@ -9,7 +9,11 @@ export const loginUser = async (credentials) => {
   export const registerUser = async (userData) => {
     console.log('userData',userData);
     
-    const response = await axiosInstance.post('/api/auth/register', userData);
+    const response = await axiosInstance.post('/api/auth/register', userData,{
+      headers: {
+          'Content-Type': 'multipart/form-data', // Ensure proper headers for FormData
+        },
+      });
     return response.data;
   };
 
