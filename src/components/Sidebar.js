@@ -8,6 +8,7 @@ import { Button, Dialog, DialogTitle, DialogContent, DialogActions, TextField, C
 const Sidebar = ({ onUserSelect }) => {
   const [users, setUsers] = useState([]);
   const [groups, setGroups] = useState([]);
+  const [userProfile,setProfile] = useState([]);
   const [groupsWithMembershipStatus, setGroupsWithMembershipStatus] = useState([]);
 
   const token = localStorage.getItem('accessToken');
@@ -25,17 +26,40 @@ const Sidebar = ({ onUserSelect }) => {
     const fetchUsersAndGroups = async () => {
       try {
         const response = await userList(userID);
+        console.log('rrrrrrrrrrrrrrrrrrrrrrrrhhh',response);
+        
         setUsers(response.allUsers);
         console.log('all users',response.allUsers);
         
         setGroups(response.userGroups);
         setGroupsWithMembershipStatus(response.groupsWithMembershipStatus);
+
+       
+
+
       } catch (error) {
         console.error('Error fetching users and groups:', error);
       }
     };  
     fetchUsersAndGroups();
   }, []);
+
+  let userdata = users.filter((a)=>a._id === userID);
+
+  // setProfile(userdata);
+  
+
+
+  console.log('userrrrrrrrr',userdata);
+
+  console.log('memberssssssss',groupsWithMembershipStatus);
+  
+
+  console.log('r',userID);
+
+  const handleLogout = ()=>{
+    window.location.href = '/'; 
+  }
 
   const createGroup = async () => {
     setShowCreateGroupModal(true);
@@ -91,98 +115,108 @@ setGroupsWithMembershipStatus(updatedResponse.groupsWithMembershipStatus);
       console.log('join group error',error);
       
     }
+
+   
     
-    // Logic to add the user to the group (e.g., API call to join group)
+ 
     
   };
+ 
 
   return (
+    <>
+   
     <div className="sidebar">
-      <h2>Users</h2>
-      <ul>
-  {users.map((user) => (
-    <li key={user._id} onClick={() => onUserSelect(user)} className="user-item">
-      <img
-        src={user.mediaUrls?.[0] || 'https://static.vecteezy.com/system/resources/previews/020/765/399/original/default-profile-account-unknown-icon-black-silhouette-free-vector.jpg'} // Use user's image or default
-        alt={`${user.userName}'s profile`}
-        className="profile-image"
-      />
-      <span>{user.userName}</span>
-    </li>
-  ))}
-</ul>
+    <div className='profileInfo'>
 
-      <h2>Groups</h2>
-      <Button onClick={createGroup}>Create Group</Button>
-      <ul>
-  {/* Render already member groups first */}
-  {groupsWithMembershipStatus
-    .filter((group) => group.isMember) // Filter groups where the user is a member
-    .map((group) => (
-      <li key={group.groupId}>
-        <span onClick={() => onUserSelect(group)}>{group.groupName}</span>
-      </li>
-    ))}
+<img
+            src={userdata[0]?.mediaUrls || 'https://static.vecteezy.com/system/resources/previews/020/765/399/original/default-profile-account-unknown-icon-black-silhouette-free-vector.jpg'} // Use user's image or default
+            alt= 'profile'
+            className="profile-image-user" />
+          <p className='userName'>{userdata[0]?.userName}</p>
+          <p className='email'>{userdata[0]?.email}</p>
+          <Button variant="text" onClick={handleLogout}>Logout</Button>
+          <hr style={{width:'100%'}} />
 
-  {/* Render joinable groups next */}
-  {groupsWithMembershipStatus
-    .filter((group) => !group.isMember) // Filter groups where the user is not a member
-    .map((group) => (
-      <li key={group.groupId}>
-        {group.groupName}
-        <Button
-          style={{ marginLeft: '10px' }}
-          onClick={() => handleJoinGroup(group.groupId)}
-        >
-          Join Group
-        </Button>
-      </li>
-    ))}
-</ul>
+</div>
+        <h4 style={{textAlign:'center'}}>Users</h4>
+        <ul >
+          {users.map((user) => (
+            <li key={user._id} onClick={() => onUserSelect(user)} className="user-item">
+              <img
+                src={user.mediaUrls || 'https://static.vecteezy.com/system/resources/previews/020/765/399/original/default-profile-account-unknown-icon-black-silhouette-free-vector.jpg'} // Use user's image or default
+                alt={`${user.userName}'s profile`}
+                className="profile-image" />
+              <span>{user.userName}</span>
+            </li>
+          ))}
+        </ul>
 
-
-
-      <Dialog open={showCreateGroupModal} onClose={() => setShowCreateGroupModal(false)}>
-        <DialogTitle>Create Group</DialogTitle>
-        <DialogContent>
-          <TextField
-            label="Group Name"
-            fullWidth
-            value={groupName}
-            onChange={(e) => setGroupName(e.target.value)}
-            margin="normal"
-          />
-          <TextField
-            label="Group Description"
-            fullWidth
-            value={groupDesc}
-            onChange={(e) => setGroupDesc(e.target.value)}
-            margin="normal"
-          />
-          <h4>Select Users</h4>
-          {users
-            .filter((user) => user._id !== userID) // Exclude current user
-            .map((user) => (
-              <FormControlLabel
-                key={user._id}
-                control={
-                  <Checkbox
-                    checked={selectedUsers.includes(user._id)}
-                    onChange={() => toggleUserSelection(user._id)}
-                  />
-                }
-                label={user.userName}
-              />
+        <h2>Groups</h2>
+        <Button onClick={createGroup}>Create Group</Button>
+        <ul>
+          {/* Render already member groups first */}
+          {groupsWithMembershipStatus
+            .filter((group) => group.isMember) // Filter groups where the user is a member
+            .map((group) => (
+              <li key={group.groupId}>
+                <span onClick={() => onUserSelect(group)}>{group.groupName}</span>
+              </li>
             ))}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setShowCreateGroupModal(false)}>Cancel</Button>
-          <Button onClick={handleGroupSubmit} color="primary">
-            Create
-          </Button>
-        </DialogActions>
-      </Dialog>
-    </div>
+
+          {/* Render joinable groups next */}
+          {groupsWithMembershipStatus
+            .filter((group) => !group.isMember) // Filter groups where the user is not a member
+            .map((group) => (
+              <li key={group.groupId}>
+                {group.groupName}
+                <Button
+                  style={{ marginLeft: '10px' }}
+                  onClick={() => handleJoinGroup(group.groupId)}
+                >
+                  Join Group
+                </Button>
+              </li>
+            ))}
+        </ul>
+
+
+
+        <Dialog open={showCreateGroupModal} onClose={() => setShowCreateGroupModal(false)}>
+          <DialogTitle>Create Group</DialogTitle>
+          <DialogContent>
+            <TextField
+              label="Group Name"
+              fullWidth
+              value={groupName}
+              onChange={(e) => setGroupName(e.target.value)}
+              margin="normal" />
+            <TextField
+              label="Group Description"
+              fullWidth
+              value={groupDesc}
+              onChange={(e) => setGroupDesc(e.target.value)}
+              margin="normal" />
+            <h4>Select Users</h4>
+            {users
+              .filter((user) => user._id !== userID) // Exclude current user
+              .map((user) => (
+                <FormControlLabel
+                  key={user._id}
+                  control={<Checkbox
+                    checked={selectedUsers.includes(user._id)}
+                    onChange={() => toggleUserSelection(user._id)} />}
+                  label={user.userName} />
+              ))}
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setShowCreateGroupModal(false)}>Cancel</Button>
+            <Button onClick={handleGroupSubmit} color="primary">
+              Create
+            </Button>
+          </DialogActions>
+        </Dialog>
+      </div></>
   );
 };
 

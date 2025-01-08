@@ -1,27 +1,25 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { io } from 'socket.io-client';
 import './ChatWindow.css';
-import { privateMessage, getMessage } from '../api/chatAPI'; // Import the privateMessage function
-import {getGroupMessage,SendGroupMessage} from '../api/groupAPI'
+import { privateMessage, getMessage } from '../api/chatAPI';
+import { getGroupMessage, SendGroupMessage } from '../api/groupAPI';
 
 function ChatWindow({ selectedUser }) {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
-  const [file, setFile] = useState(null); // For handling file uploads
+  const [file, setFile] = useState(null);
   const socket = useRef(null);
-  const loginUser = localStorage.getItem('ids'); 
-
-  console.log('tttttttt',selectedUser);
+  const loginUser = localStorage.getItem('ids');
+  const [isLoading, setIsLoading] = useState(false);
+  const fileInputRef = useRef(null);
+  const messagesEndRef = useRef(null);
   
 
   useEffect(() => {
     if (!selectedUser) return;
 
-    // Check if it's a group or private chat based on the selected user
     if (selectedUser.groupId) {
-      // Group Chat
-      // Initialize the group message component
+      // Group Chat Logic
       socket.current = io(process.env.REACT_APP_BACKEND_API_URL);
       socket.current.emit('join-room', { groupId: selectedUser.groupId });
 
@@ -29,35 +27,29 @@ function ChatWindow({ selectedUser }) {
         setMessages((prevMessages) => [...prevMessages, message]);
       });
 
-      // Fetch the initial group messages
       const fetchGroupMessages = async () => {
         try {
-          // Replace this with the actual function to fetch group messages
-          const response = await getGroupMessage (selectedUser.groupId);
+          const response = await getGroupMessage(selectedUser.groupId);
           setMessages(response);
-          console.log('grp messssssssss',response);
-          
         } catch (error) {
           console.error('Error fetching group messages:', error);
         }
       };
 
       fetchGroupMessages();
-
     } else {
-      // Private Chat
+      // Private Chat Logic
       const fetchPrivateMessages = async () => {
         try {
           const response = await getMessage(loginUser, selectedUser._id);
           setMessages(response);
         } catch (error) {
-          console.error('Error fetching messages:', error);
+          console.error('Error fetching private messages:', error);
         }
       };
 
       fetchPrivateMessages();
 
-      // Private message socket connection
       socket.current = io(process.env.REACT_APP_BACKEND_API_URL);
       const roomId = [loginUser, selectedUser._id].sort().join('-');
       socket.current.emit('join-room', { userId: loginUser, chatPartnerId: selectedUser._id });
@@ -72,16 +64,22 @@ function ChatWindow({ selectedUser }) {
     };
   }, [selectedUser]);
 
+  useEffect(() => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [messages]);
+
   const sendMessage = async () => {
     if (newMessage.trim() === '' && !file) return;
+
+    setIsLoading(true);
 
     let formData = new FormData();
     formData.append('senderId', loginUser);
     if (selectedUser.groupId) {
-      // If it's a group message
       formData.append('groupId', selectedUser.groupId);
     } else {
-      // If it's a private message
       formData.append('receiverId', selectedUser._id);
     }
     formData.append('content', newMessage);
@@ -89,7 +87,7 @@ function ChatWindow({ selectedUser }) {
 
     try {
       const messageData = selectedUser.groupId
-        ? await SendGroupMessage (formData)
+        ? await SendGroupMessage(formData)
         : await privateMessage(formData);
 
       socket.current.emit('send-message', {
@@ -98,39 +96,68 @@ function ChatWindow({ selectedUser }) {
       });
 
       setNewMessage('');
-      setFile(null);
+      setFile('');
+      if (fileInputRef.current) fileInputRef.current.value = '';
     } catch (error) {
       console.error('Error sending message:', error);
+    } finally {
+      setIsLoading(false);
     }
+  };
+
+  const isSentByLoggedInUser = (message) => {
+    const isGroupChat = !!selectedUser.groupId;
+    return isGroupChat
+      ? message.sender._id === loginUser
+      : message.sender === loginUser;
   };
 
   return (
     <div className="chat-window">
       <div className="chat-header">
-      {/* <img
-        src={selectedUser.mediaUrls?.[0] || 'https://static.vecteezy.com/system/resources/previews/020/765/399/original/default-profile-account-unknown-icon-black-silhouette-free-vector.jpg'} // Use user's image or default
-        alt= 'profile'
-        className="profile-image_chat"
-      /> */}
-        <h3>{selectedUser ? selectedUser.groupName || selectedUser.userName : 'Select a user or group'}</h3>
+        <div className="chat-pro">
+          <img
+            src={selectedUser?.mediaUrls || 'https://static.vecteezy.com/system/resources/previews/020/765/399/original/default-profile-account-unknown-icon-black-silhouette-free-vector.jpg'}
+            alt="profile"
+            className="profile-image_chat"
+          />
+          <div>
+            <h3>{selectedUser ? selectedUser.groupName || selectedUser.userName : 'Select a user or group'}</h3>
+          </div>
+        </div>
       </div>
       <div className="chat-messages">
-        {messages.map((message, index) => (
-          <div key={index} className={`message ${message.sender === loginUser ? 'sent' : 'received'}`}>
-            <div className="message-bubble">
-            <div className="sender-name">{message.sender.userName}</div>
-              <p>{message.content}</p>
-              {message.mediaUrls?.map((url, idx) => (
-                url.includes('video') ? (
-                  <video key={idx} src={url} controls className="media" />
-                ) : (
-                  <img key={idx} src={url} alt="media" className="media" />
-                )
-              ))}
-              <small className="timestamp">{new Date(message.createdAt).toLocaleTimeString()}</small>
+        {messages.map((message, index) => {
+          const isGroupChat = !!selectedUser.groupId;
+          const isSentByLoggedInUser = isGroupChat
+            ? message.sender._id === loginUser
+            : message.sender === loginUser;
+
+          return (
+            <div
+              key={message._id || index}
+              className={`message ${isSentByLoggedInUser ? 'sent' : 'received'}`}
+            >
+              <div className="message-bubble">
+                {isGroupChat && (
+                  <div className="sender-name">{message.sender?.userName || 'Unknown'}</div>
+                )}
+                <p>{message.content}</p>
+                {message.mediaUrls?.map((url, idx) => (
+                  url.includes('video') ? (
+                    <video key={idx} src={url} controls className="media" />
+                  ) : (
+                    <img key={idx} src={url} alt="media" className="media" />
+                  )
+                ))}
+                <small className="timestamp">
+                  {new Date(message.createdAt).toLocaleTimeString()}
+                </small>
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
+        <div ref={messagesEndRef} />
       </div>
       <div className="chat-input">
         <input
@@ -139,8 +166,15 @@ function ChatWindow({ selectedUser }) {
           onChange={(e) => setNewMessage(e.target.value)}
           placeholder="Type a message"
         />
-        <input type="file" onChange={(e) => setFile(e.target.files[0])} />
-        <button onClick={sendMessage}>Send</button>
+        <input
+          type="file"
+          ref={fileInputRef}
+          onChange={(e) => setFile(e.target.files[0])}
+          disabled={isLoading}
+        />
+        <button onClick={sendMessage}>
+          {isLoading ? 'Sending...' : 'Send'}
+        </button>
       </div>
     </div>
   );

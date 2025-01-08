@@ -1,3 +1,5 @@
+
+
 .chat-window {
   display: flex;
   flex-direction: column;
@@ -9,9 +11,10 @@
 }
 
 .chat-header {
-  background-color: lightskyblue;
-  color: white;
-  padding: 5px;
+  /* background-color: lightskyblue; */
+  
+  color: black;
+  /* padding: 5px; */
   text-align: center;
   font-size: 18px;
   border-radius: 15px;
@@ -123,4 +126,12 @@
   border-radius: 50%;
   object-fit: cover;
   border: 1px solid #ddd;
+}
+.chat-pro{
+
+  display: flex;
+  /* flex-direction: row; */
+  gap: 25px;
+  align-items: center;
+  padding-left: 30px;
 }

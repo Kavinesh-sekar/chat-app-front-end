@@ -37,4 +37,21 @@
     object-fit: cover;
     border: 1px solid #ddd;
   }
-  
+  .profileInfo{
+    display: flex;
+    flex-direction: column ;
+    align-items: center;
+  }
+  .userName{
+    line-height: 1px;
+  }
+  .email{
+    line-height:1px ;
+  }
+  .profile-image-user{
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid #ddd;
+  }

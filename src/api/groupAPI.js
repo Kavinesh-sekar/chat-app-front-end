@@ -35,3 +35,9 @@ export const createGroupPeople = async (content) => {
     const response = await axiosInstance.post('/api/groups/join_group', grpdata);
     return response.data;
   };
+
+  export const getMembers = async (groupId) => {
+    
+    const response = await axiosInstance.get(`/api/groups/members/${groupId}`);
+    return response.data;
+  };
