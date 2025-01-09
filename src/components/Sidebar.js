@@ -4,7 +4,7 @@ import { jwtDecode } from 'jwt-decode';
 import { createGroupPeople,joinGroup } from '../api/groupAPI';
 import './sidebar.css';
 import { Button, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Checkbox, FormControlLabel } from '@mui/material';
-
+import AddIcon from '@mui/icons-material/Add';
 const Sidebar = ({ onUserSelect }) => {
   const [users, setUsers] = useState([]);
   const [groups, setGroups] = useState([]);
@@ -151,9 +151,11 @@ setGroupsWithMembershipStatus(updatedResponse.groupsWithMembershipStatus);
             </li>
           ))}
         </ul>
-
-        <h2>Groups</h2>
-        <Button onClick={createGroup}>Create Group</Button>
+        <div className='group'>
+        <h3>Groups</h3>
+        
+        <AddIcon    className="add-icon" onClick={createGroup}>Create Group</AddIcon>
+        </div>
         <ul>
           {/* Render already member groups first */}
           {groupsWithMembershipStatus
@@ -171,6 +173,8 @@ setGroupsWithMembershipStatus(updatedResponse.groupsWithMembershipStatus);
               <li key={group.groupId}>
                 {group.groupName}
                 <Button
+                size='small'
+                  variant="contained"
                   style={{ marginLeft: '10px' }}
                   onClick={() => handleJoinGroup(group.groupId)}
                 >

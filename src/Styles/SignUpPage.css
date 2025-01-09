@@ -1,9 +1,10 @@
 .SignupContainer {
     display: flex;
     flex-direction: column;
+    /* width: 50%; */
     align-items: center;
-    margin: 20px auto;
-    width: 100%;
+    /* margin: 20px auto; */
+    /* width: 100%; */
   }
   
   .SignupHeading {
@@ -13,11 +14,16 @@
   }
   
   .SignupBox {
-    display: grid;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    justify-content: center;
+    width: 35%;
+    /* display: grid; */
     /* flex-direction: column; */
-    gap:20px;
-    align-items: center;
-    background: #f9f9f9;
+    /* gap:20px; */
+    /* align-items: center; */
+    /* background: #f9f9f9; */
     padding: 20px;
     border-radius: 10px;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
