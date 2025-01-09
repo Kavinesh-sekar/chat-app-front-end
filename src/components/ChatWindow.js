@@ -2,7 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { io } from 'socket.io-client';
 import './ChatWindow.css';
 import { privateMessage, getMessage } from '../api/chatAPI';
-import { getGroupMessage, SendGroupMessage } from '../api/groupAPI';
+import { getGroupMessage, SendGroupMessage,getMembers } from '../api/groupAPI';
+import GroupsIcon from '@mui/icons-material/Groups';
 
 function ChatWindow({ selectedUser }) {
   const [messages, setMessages] = useState([]);
@@ -13,12 +14,16 @@ function ChatWindow({ selectedUser }) {
   const [isLoading, setIsLoading] = useState(false);
   const fileInputRef = useRef(null);
   const messagesEndRef = useRef(null);
+  const [grpMembers ,setGrpMembers] = useState([]);
+  const [displayMemebers,setDisplayMembers] = useState(false);
+  const [dispalyIcon ,setDisplayIcon] = useState(false);
   
 
   useEffect(() => {
     if (!selectedUser) return;
 
     if (selectedUser.groupId) {
+      setDisplayIcon(true);
       // Group Chat Logic
       socket.current = io(process.env.REACT_APP_BACKEND_API_URL);
       socket.current.emit('join-room', { groupId: selectedUser.groupId });
@@ -36,8 +41,26 @@ function ChatWindow({ selectedUser }) {
         }
       };
 
+      const fetchGroupMembers = async () => {
+        try {
+          const response = await getMembers(selectedUser.groupId);
+          console.log('resssssssssss',response);
+          console.log('resssssssssss mmrmrmrmm',response.members);
+
+          setGrpMembers(response.members);
+          console.log('members',grpMembers);
+          
+          
+                    // setMessages(response);
+        } catch (error) {
+          console.error('Error fetching group messages:', error);
+        }
+      };
+
       fetchGroupMessages();
+      fetchGroupMembers();
     } else {
+      setDisplayIcon(false);
       // Private Chat Logic
       const fetchPrivateMessages = async () => {
         try {
@@ -63,6 +86,9 @@ function ChatWindow({ selectedUser }) {
       if (socket.current) socket.current.disconnect();
     };
   }, [selectedUser]);
+
+  console.log('ooooo',grpMembers);
+  
 
   useEffect(() => {
     if (messagesEndRef.current) {
@@ -124,10 +150,23 @@ function ChatWindow({ selectedUser }) {
           <div>
             <h3>{selectedUser ? selectedUser.groupName || selectedUser.userName : 'Select a user or group'}</h3>
           </div>
+            {dispalyIcon?  <GroupsIcon onClick = {() => setDisplayMembers(!displayMemebers)} /> : null}
+            {/* <ul> */}
+                {
+             
+              displayMemebers ? 
+              grpMembers.map((members)=>(
+                <li className='members'>{members.userName}</li>
+              )):
+              null
+            }
+            {/* </ul> */}
+            
+          
         </div>
       </div>
       <div className="chat-messages">
-        {messages.map((message, index) => {
+        {messages?.map((message, index) => {
           const isGroupChat = !!selectedUser.groupId;
           const isSentByLoggedInUser = isGroupChat
             ? message.sender._id === loginUser

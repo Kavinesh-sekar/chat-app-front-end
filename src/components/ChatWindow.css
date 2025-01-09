@@ -21,6 +21,8 @@
   display: flex;
   gap: 20px;
   align-items: center;
+  justify-content: center;
+  /* align-items: center; */
 }
 
 .chat-messages {
@@ -134,4 +136,13 @@
   gap: 25px;
   align-items: center;
   padding-left: 30px;
+}
+.members{
+  list-style: none;
+  /* position: relative; */
+  /* display: block; */
+  /* display: flex; */
+  /* flex-direction: row; */
+  /* top:80px; */
+  /* background-color: red; */
 }
