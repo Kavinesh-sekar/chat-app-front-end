@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
+import DOMPurify from 'dompurify'; // Import DOMPurify
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
-import CircularProgress from '@mui/material/CircularProgress'; // Material-UI Circular Loader
+import CircularProgress from '@mui/material/CircularProgress';
 import { useNavigate } from 'react-router-dom';
 import { registerUser } from '../api/authAPI';
 import '../Styles/SignUpPage.css';
@@ -15,7 +16,7 @@ function Signup() {
   const [confirmpassword, setConfirmPassword] = useState('');
   const [profileImage, setProfileImage] = useState(null);
   const [profilePreview, setProfilePreview] = useState(null);
-  const [loading, setLoading] = useState(false); // Loading state
+  const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({
     userName: '',
     email: '',
@@ -29,6 +30,11 @@ function Signup() {
     return regex.test(email);
   }
 
+  function hasSpecialCharacters(input) {
+    const regex = /[^a-zA-Z0-9]/; // Matches any non-alphanumeric character
+    return regex.test(input);
+  }
+
   const handleImageUpload = (event) => {
     const file = event.target.files[0];
     if (file) {
@@ -40,19 +46,32 @@ function Signup() {
   const handleRegister = async () => {
     let validationErrors = {};
 
-    if (!userName.trim()) {
+    // Sanitize inputs
+    const sanitizedUserName = DOMPurify.sanitize(userName);
+    const sanitizedEmail = DOMPurify.sanitize(email);
+    const sanitizedPassword = DOMPurify.sanitize(password);
+    const sanitizedConfirmPassword = DOMPurify.sanitize(confirmpassword);
+
+    // Validate inputs
+    if (!sanitizedUserName.trim()) {
       validationErrors.userName = 'Username is required';
+    } else if (hasSpecialCharacters(sanitizedUserName)) {
+      validationErrors.userName = 'Username should not contain special characters';
     }
 
-    if (!email.trim() || !validateEmail(email)) {
-      validationErrors.email = 'Valid email is required';
+    if (!sanitizedEmail.trim()) {
+      validationErrors.email = 'Email is required';
+    } else if (!validateEmail(sanitizedEmail)) {
+      validationErrors.email = 'Please enter a valid email';
     }
 
-    if (!password.trim()) {
+    if (!sanitizedPassword.trim()) {
       validationErrors.password = 'Password is required';
+    } else if (sanitizedPassword.length < 5) {
+      validationErrors.password = 'Password must be at least 5 characters long';
     }
 
-    if (password !== confirmpassword) {
+    if (sanitizedPassword !== sanitizedConfirmPassword) {
       validationErrors.confirmpassword = 'Passwords do not match';
     }
 
@@ -68,21 +87,21 @@ function Signup() {
     }
 
     const formData = new FormData();
-    formData.append('userName', userName);
-    formData.append('email', email);
-    formData.append('password', password);
+    formData.append('userName', sanitizedUserName);
+    formData.append('email', sanitizedEmail);
+    formData.append('password', sanitizedPassword);
     if (profileImage) formData.append('files', profileImage);
 
-    setLoading(true); // Start loading
+    setLoading(true);
     try {
       const sendData = await registerUser(formData);
       console.log('Response:', sendData);
-      setLoading(false); // Stop loading
+      setLoading(false);
       navigate('/');
     } catch (error) {
       console.log('register error', error);
       console.log(error.response?.data?.message || 'Register failed!');
-      setLoading(false); // Stop loading even on failure
+      setLoading(false);
     }
   };
 
@@ -154,7 +173,6 @@ function Signup() {
           helperText={errors.confirmpassword}
         />
 
-        {/* Show loading indicator or the Register button */}
         {loading ? (
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <CircularProgress size={20} />
