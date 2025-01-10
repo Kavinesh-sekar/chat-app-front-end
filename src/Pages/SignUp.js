@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import DOMPurify from 'dompurify'; // Import DOMPurify
+import DOMPurify from 'dompurify'; 
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
 import CircularProgress from '@mui/material/CircularProgress';
@@ -31,7 +31,7 @@ function Signup() {
   }
 
   function hasSpecialCharacters(input) {
-    const regex = /[^a-zA-Z0-9]/; // Matches any non-alphanumeric character
+    const regex = /[^a-zA-Z0-9]/; 
     return regex.test(input);
   }
 

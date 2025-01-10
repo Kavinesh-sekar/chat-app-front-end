@@ -10,13 +10,13 @@ function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState({ email: false, password: false });
-  const [loginError, setLoginError] = useState(''); // State for login error message
+  const [loginError, setLoginError] = useState(''); 
 
   const navigate = useNavigate();
 
   const handleLogin = async () => {
     setError({ email: false, password: false });
-    setLoginError(''); // Reset login error message
+    setLoginError('');
 
     let hasError = false;
 
